@@ -1,0 +1,129 @@
+{
+    "plugins": {
+        "path": [
+            "/opt/host/plugins/",
+            "../plugins/",
+            "plugins/",
+            "../../plugins/",
+            "/home/inception/git/commIO/release/x86_64/plugins/",
+            "/home/inception/git/pych/release/x86_64-linux-gnu/plugins/",
+            "/home/pi/aarch64/plugins/"
+        ],
+        "commIO": {
+            "CANOpenIO": "CANOpenIO.so"
+        },
+        "deviceIO": {
+            "SensorIO": "SensorIO.so",
+            "ActuatorIO": "ActuatorIO.so",
+            "EPOS": "EPOS.so"
+        },
+        "controlIO": {
+            "SimplePD": "SimplePD.so"
+        }
+    },
+    "commIO": {
+        "can0": {
+            "type": "CANOpenIO",
+            "config": {
+                "iface": "can0",
+                "ts": "1ms",
+                "wakeup": "800ns",
+                "thread": "_thr_control0"
+            }
+        }
+    },
+    "deviceIO": {
+        "epos2": {
+            "type": "EPOS",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 2
+                },
+                "mode": "velocity"
+            }
+        },
+        "enc_epos2": {
+            "type": "SensorIO",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 2,
+                    "tpdo": 0,
+                    "lsb_byte": 0,
+                    "n_bytes": 4,
+                    "ctype": "int32"
+                },
+                "eval": "( x / 4096.0 * 360.0)"
+            }
+        },
+        "ref": {
+            "type": "SensorIO",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 2,
+                    "tpdo": 0,
+                    "lsb_byte": 0,
+                    "n_bytes": 4,
+                    "ctype": "int32"
+                },
+                "eval": "-20.0*sin(2.0*3.1416*1.0*t) + x/101.0"
+            }
+        },
+        "motor_epos2_rpm": {
+            "type": "ActuatorIO",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 2,
+                    "rpdo": 1,
+                    "lsb_byte": 0,
+                    "n_bytes": 4,
+                    "dlc": 4
+                },
+                "max_value": 5000
+            }
+        }
+    },
+    "controlIO": {
+       "ctrl0":{
+            "type": "SimplePD",
+            "config": {
+                "sensors": [
+                    "enc_epos2",
+                    "ref"
+                ],
+                "actuators": [
+                    "motor_epos2_rpm"
+                ],
+                "references": [],
+                "kp": 2,
+                "kd": 0.1,
+                "ts": "10ms",
+                "wakeup": "0ms",
+                "thread": "_thr_control0"
+            }
+        }
+    },
+    "log": {
+        "enable": false,
+        "path": "logs/"
+    },
+    "robot": {
+        "name": "ExoTAO",
+        "type": "biped",
+        "sensors": [
+            "enc_epos5"
+        ],
+        "actuators": [
+            "motor_epos5"
+        ],
+        "controllers": [
+            "SimplePD"
+        ]
+    },
+    "core": {
+        "max_run_time": "5s"
+    }
+}
