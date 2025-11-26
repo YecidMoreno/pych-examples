@@ -1,0 +1,253 @@
+{
+    "plugins": {
+        "path": [
+            "/opt/host/plugins/",
+            "../plugins/",
+            "plugins/",
+            "../../plugins/",
+            "/home/inception/git/commIO/release/x86_64/plugins/",
+            "/home/inception/git/pych/release/x86_64-linux-gnu/plugins/",
+            "/home/pi/aarch64/plugins/"
+        ],
+        "commIO": {
+            "CANOpenIO": "CANOpenIO.so"
+        },
+        "deviceIO": {
+            "SensorIO": "SensorIO.so",
+            "ActuatorIO": "ActuatorIO.so",
+            "EPOS": "EPOS.so"
+        },
+        "controlIO": {
+            "SimpleImpedance": "SimpleImpedance.so"
+        }
+    },
+    "commIO": {
+        "can0": {
+            "type": "CANOpenIO",
+            "config": {
+                "iface": "can0",
+                "ts": "5ms",
+                "wakeup": "800ns",
+                "thread": "_thr_control0"
+            }
+        }
+    },
+    "deviceIO": {
+        "epos2": {
+            "type": "EPOS",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 2
+                },
+                "mode": "velocity"
+            }
+        },
+        "epos4": {
+            "type": "EPOS",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 4
+                },
+                "mode": "velocity"
+            }
+        },
+        "theta_in_knee_r": {
+            "type": "SensorIO",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 4,
+                    "tpdo": 0,
+                    "lsb_byte": 0,
+                    "n_bytes": 4,
+                    "ctype": "int32"
+                },
+                "eval": "-( x / 4096.0 ) *2.0* M_PI"
+            }
+        },
+        "theta_out_knee_r": {
+            "type": "SensorIO",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 2,
+                    "tpdo": 0,
+                    "lsb_byte": 0,
+                    "n_bytes": 4,
+                    "ctype": "int32"
+                },
+                "eval": "( x / 2000.0) *2.0* M_PI"
+            }
+        },
+        "u_rpm_knee_r": {
+            "type": "ActuatorIO",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 4,
+                    "rpdo": 1,
+                    "lsb_byte": 0,
+                    "n_bytes": 4,
+                    "dlc": 4
+                },
+                "max_value": 5000
+            }
+        },
+         "epos3": {
+            "type": "EPOS",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 3
+                },
+                "mode": "velocity"
+            }
+        },
+        "epos5": {
+            "type": "EPOS",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 5
+                },
+                "mode": "velocity"
+            }
+        },
+        "theta_in_knee_l": {
+            "type": "SensorIO",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 5,
+                    "tpdo": 0,
+                    "lsb_byte": 0,
+                    "n_bytes": 4,
+                    "ctype": "int32"
+                },
+                "eval": "-( x / 4098.0 ) *2.0* M_PI"
+            }
+        },
+        "theta_out_knee_l": {
+            "type": "SensorIO",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 3,
+                    "tpdo": 0,
+                    "lsb_byte": 0,
+                    "n_bytes": 4,
+                    "ctype": "int32"
+                },
+                "eval": "( x / 2000.0) *2.0* M_PI"
+            }
+        },
+        "u_rpm_knee_l": {
+            "type": "ActuatorIO",
+            "config": {
+                "source": {
+                    "commIO": "can0",
+                    "NodeID": 5,
+                    "rpdo": 1,
+                    "lsb_byte": 0,
+                    "n_bytes": 4,
+                    "dlc": 4
+                },
+                "max_value": 5000
+            }
+        },
+        "my_ref_0": {
+            "type": "SensorIO",
+            "config": {
+                "source": {
+                    "commIO": "VirtualIO",
+                    "calibrate": false
+                },
+                "eval": "0.1*sin(2*3.1415*0.5*t)"
+            }
+        }
+    },
+    "controlIO": {
+        "ctrl0": {
+            "type": "SimpleImpedance",
+            "config": {
+                "sensors": [
+                    "theta_in_knee_r",
+                    "theta_out_knee_r"
+                ],
+                "actuators": [
+                    "u_rpm_knee_r"
+                ],
+                "references": [
+                    "my_ref_0"
+                ],
+                "Ks": 104,
+                "GR": 150.0,
+                "kp": 12,
+                "ki": 1.2,
+                "kd": 0.1,
+                "Kv": -6,
+                "Bv": -0.1,
+                "ts": "5ms",
+                "wakeup": "0ms",
+                "thread": "_thr_control0",
+                "name": "KneeR_Impedance",
+                "log": {
+                    "enable": true,
+                    "file_name": "SimpleImpedance_0"
+                }
+            }
+        },
+        "ctrl1": {
+            "type": "SimpleImpedance",
+            "config": {
+                "sensors": [
+                    "theta_in_knee_l",
+                    "theta_out_knee_l"
+                ],
+                "actuators": [
+                    "u_rpm_knee_l"
+                ],
+                "references": [
+                    "my_ref_0"
+                ],
+                "Ks": 150,
+                "GR": 150,
+                "kp": 2,
+                "ki": 0.1,
+                "kd": 0.001,
+                "Kv": -40,
+                "Bv": 0,
+                "ts": "5ms",
+                "wakeup": "0ms",
+                "thread": "_thr_control0",
+                "name": "KneeL_Impedance",
+                "log": {
+                    "enable": true,
+                    "file_name": "SimpleImpedance_1"
+                }
+            }
+        }
+    },
+    "log": {
+        "enable": true,
+        "path": "logs/"
+    },
+    "robot": {
+        "name": "ExoTAO",
+        "type": "biped",
+        "sensors": [
+            "enc_epos5"
+        ],
+        "actuators": [
+            "motor_epos5"
+        ],
+        "controllers": [
+            "SimplePD"
+        ]
+    },
+    "core": {
+        "max_run_time": "5s"
+    }
+}
